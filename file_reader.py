@@ -12,15 +12,8 @@ pdf_content = ''
 
 
 def extract_text_from_pdf_url(url):
-    parsed_url = urlparse(url)
-    filename = parsed_url.path.split("/")[-1]
-    if filename.endswith(".pdf"):
-        print(filename)
-        response = requests.get(url)
-        pdf_content = io.BytesIO(response.content)
-    else:
-        print("URL does not point to a pdf file.")
-
+    response = requests.get(url)
+    pdf_content = io.BytesIO(response.content)
     pdf_reader = PyPDF2.PdfReader(pdf_content)
     num_pages = len(pdf_reader.pages)
 
@@ -30,8 +23,15 @@ def extract_text_from_pdf_url(url):
 
         # Extract the text from the page
         text = page.extract_text()
+        text_list.extend(text.split('\n'))
+        symbol = '$'
 
-        print(text)
+    for item in text_list:
+        if symbol in item:
+            # print(f"Symbol '{symbol}' found in '{item}'")
+            prices.append(item)
+
+
 
 
 def extract_text_pdf(path):
@@ -76,3 +76,13 @@ def search_list(search_term):
             found = True
     if not found:
         print("Not found...")
+
+
+def extract_pdf_name(url):
+    parsed_url = urlparse(url)
+    filename = parsed_url.path.split("/")[-1]
+    if filename.endswith(".pdf"):
+        print(filename)
+    else:
+        print("URL does not point to a pdf file.")
+    return pdf_content
