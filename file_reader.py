@@ -2,10 +2,12 @@ import PyPDF2
 import requests
 import io
 from urllib.parse import urlparse
+import csv
 
 
 text_list = []
 prices = []
+csv_list = []
 pdf_content = ''
 
 
@@ -68,7 +70,8 @@ def print_list(list_to_print):
     print(list_to_print)
 
 
-def search_list(search_term):
+def search_list():
+    search_term = get_user_search()
     found = False
     for item in prices:
         if search_term in item:
@@ -86,3 +89,18 @@ def extract_pdf_name(url):
     else:
         print("URL does not point to a pdf file.")
     return pdf_content
+
+def get_user_search():
+    search = input("What would you like to search for?: ")
+    return search
+
+def read_csv_file(file_name):
+    with open(file_name, 'r') as file:
+        reader = csv.reader(file)
+        next(reader)  # skip the header row
+        for row in reader:
+            procedure_name = row[5]
+            self_pay_cost = row[12]
+            csv_list.append(procedure_name + ": "+self_pay_cost)
+    for i in csv_list:
+        print(i)
