@@ -1,9 +1,18 @@
+import time
+
 import PyPDF2
 import requests
 import io
 from urllib.parse import urlparse
 import csv
 from bs4 import BeautifulSoup
+import lxml
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+options = Options()
+options.add_argument("--headless")
+driver = webdriver.Chrome(options=options)
 
 
 text_list = []
@@ -105,14 +114,14 @@ def read_csv_file(file_name):
 
 def search_for_link(url):
     extension = '.csv'
-    response = requests.get(url)
+    response = requests.get(url, verify=False)
     soup = BeautifulSoup(response.content, 'html.parser')
     for link in soup.find_all('a'):
         href = link.get('href')
         page_links.append(href)
 
     for i in page_links:
-        if i and i.endswith('.csv') or i and i.endswith('.pdf'):
+        if i and i.endswith('.csv') or i and i.endswith('.pdf') or i and i.endswith('.json') or i and 'download' in i.lower() or i and i.endswith('.xlsx'):
             print(f'Found a download link to a file: {i}')
 
 
@@ -125,7 +134,11 @@ def read_page(url):
 def read_table(url):
     response = requests.get(url, verify=False)
     soup = BeautifulSoup(response.content, 'html.parser')
-    container = soup.find('div', {'class': 'col-description'})
+    body = soup.find("body")
+    root = body.find("app-root")
+    list = root.find("app-price-list")
+    container = list.find_all("div")
+
     print(container)
 
     #table = container.find('table')
@@ -134,3 +147,19 @@ def read_table(url):
 
 
 
+def list_tags(url, depth=0):
+    driver.get(url)
+    time.sleep(1)
+    driver.implicitly_wait(100)
+    content = driver.page_source
+    soup = BeautifulSoup(content, 'lxml')
+    app_root_tag = soup.find("app-root")
+    nested_tags = app_root_tag.find("app-price-list")
+    div_tags = nested_tags.find("app-table")
+    table_contents = div_tags.find_all("td", class_="col-description")
+
+    for tag in table_contents:
+        print(tag)
+
+
+    driver.quit()
